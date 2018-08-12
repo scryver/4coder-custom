@@ -1257,6 +1257,39 @@ project_generate_sh_script(Partition *scratch, String opts, String compiler,
     String od = output_dir;
     String bf = binary_file;
     
+    String except;
+    if (cf.str[cf.size - 1] == 'p')
+    {
+        // NOTE(michiel): Assume this is cpp so we append the c++11 thingies
+        String cppstd = make_lit_string(" -std=c++11");
+        int32_t cap = opts.size + cppstd.size;
+        char *mem = push_array(scratch, char, cap);
+        push_align(scratch, 8);
+        if (mem != 0) 
+        {
+            String new_opts = make_string_cap(mem, 0, cap);
+            append(&new_opts, opts);
+            append(&new_opts, cppstd);
+            opts = new_opts;
+        }
+        cap = compiler.size + 2;
+        char *mem2 = push_array(scratch, char, cap);
+        push_align(scratch, 8);
+        if (mem2 != 0)
+        {
+            String new_comp = make_string_cap(mem2, 0, cap);
+            append(&new_comp, compiler);
+            append(&new_comp, "++");
+            compiler = new_comp;
+        }
+        except = make_lit_string("-Wno-unused-function -Wno-writable-strings");
+    }
+    else
+    {
+        // NOTE(michiel): Assume this is a c file
+        except = make_lit_string("-Wno-unused-function");
+    }
+    
     int32_t space_cap = partition_remaining(scratch);
     char *space = push_array(scratch, char, space_cap);
     String file_name = make_string_cap(space, 0, space_cap);
@@ -1270,14 +1303,21 @@ project_generate_sh_script(Partition *scratch, String opts, String compiler,
     if (sh_script != 0){
         fprintf(sh_script, "#!/bin/bash\n\n");
         
-        fprintf(sh_script, "code=\"$PWD\"\n");
+        fprintf(sh_script, "set -e\n\n");
         
-        fprintf(sh_script, "opts=%.*s\n", opts.size, opts.str);
+        fprintf(sh_script, "curDir=\"$(pwd)\"\n");
+        fprintf(sh_script, "codeDir=\"$curDir/src\"\n");
+        fprintf(sh_script, "buildDir=\"$curDir/%.*s\"\n\n", od.size, od.str);
         
-        fprintf(sh_script, "cd %.*s > /dev/null\n", od.size, od.str);
-        fprintf(sh_script, "%.*s $opts $code/%.*s -o %.*s\n",
+        fprintf(sh_script, "flags=\"%.*s\"\n\n", opts.size, opts.str);
+        fprintf(sh_script, "exceptions=\"%.*s\"\n\n", except.size, except.str);
+        
+        fprintf(sh_script, "mkdir -p \"$buildDir\"\n\n");
+        
+        fprintf(sh_script, "pushd \"$buildDir\" > /dev/null\n");
+        fprintf(sh_script, "    %.*s $flags $exceptions \"$codeDir/%.*s\" -o %.*s\n",
                 compiler.size, compiler.str, cf.size, cf.str, bf.size, bf.str);
-        fprintf(sh_script, "cd $code > /dev/null\n");
+        fprintf(sh_script, "popd > /dev/null\n\n");
         
         fclose(sh_script);
         success = true;
