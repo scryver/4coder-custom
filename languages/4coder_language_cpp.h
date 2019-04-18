@@ -118,6 +118,10 @@ init_language_cpp(Application_Links *app){
         PSAT("static"  , CPP_TOKEN_KEY_LINKAGE),
         PSAT("virtual" , CPP_TOKEN_KEY_LINKAGE),
         
+        PSAT("internal", CPP_TOKEN_KEY_LINKAGE),
+        PSAT("global"  , CPP_TOKEN_KEY_LINKAGE),
+        PSAT("persist" , CPP_TOKEN_KEY_LINKAGE),
+        
         PSAT("alignas"      , CPP_TOKEN_KEY_OTHER),
         PSAT("explicit"     , CPP_TOKEN_KEY_OTHER),
         PSAT("noexcept"     , CPP_TOKEN_KEY_OTHER),
