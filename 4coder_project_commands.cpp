@@ -4,20 +4,20 @@
 
 // TOP
 
-static Project current_project = {0};
-static Partition current_project_arena = {0};
+static Project current_project = {};
+static Partition current_project_arena = {};
 
 ///////////////////////////////
 
 static Project_File_Pattern_Array
 get_pattern_array_from_cstring_array(Partition *arena, CString_Array list){
-    Project_File_Pattern_Array array = {0};
+    Project_File_Pattern_Array array = {};
     int32_t count = list.count;
     array.patterns = push_array(arena, Project_File_Pattern, count);
     array.count = count;
     for (int32_t i = 0; i < count; ++i){
         String base_str = make_string_slowly(list.strings[i]);
-        String str = push_string(arena, base_str.size + 3);
+        String str = string_push(arena, base_str.size + 3);
         append(&str, "*.");
         append(&str, base_str);
         terminate_with_null(&str);
@@ -28,7 +28,7 @@ get_pattern_array_from_cstring_array(Partition *arena, CString_Array list){
 
 static Project_File_Pattern_Array
 get_pattern_array_from_extension_list(Partition *arena, Extension_List extension_list){
-    CString_Array list = {0};
+    CString_Array list = {};
     list.strings = extension_list.exts;
     list.count = extension_list.count;
     return(get_pattern_array_from_cstring_array(arena, list));
@@ -51,7 +51,7 @@ close_all_files_with_extension(Application_Links *app, Partition *scratch_part,
         do_repeat = 0;
         
         uint32_t access = AccessAll;
-        Buffer_Summary buffer = {0};
+        Buffer_Summary buffer = {};
         for (buffer = get_buffer_first(app, access);
              buffer.exists;
              get_buffer_next(app, &buffer, access)){
@@ -145,7 +145,7 @@ open_all_files_in_directory_pattern_match__inner(Application_Links *app, String 
 static Project_File_Pattern_Array
 get_standard_blacklist(Partition *arena){
     static char *dot_str = ".*";
-    CString_Array black_array = {0};
+    CString_Array black_array = {};
     black_array.strings = &dot_str;
     black_array.count = 1;
     return(get_pattern_array_from_cstring_array(arena, black_array));
@@ -234,7 +234,7 @@ parse_project__config_data__version_0(Partition *arena, String file_dir, Config 
     }
     
     // Read the settings from project.4coder
-    String str = {0};
+    String str = {};
     if (config_string_var(parsed, "extensions", 0, &str)){
         Extension_List extension_list;
         parse_extension_line_to_extension_list(str, &extension_list);
@@ -259,18 +259,18 @@ parse_project__config_data__version_0(Partition *arena, String file_dir, Config 
         
         Config_Compound *compound = 0;
         if (config_compound_var(parsed, fkey_command_name, j, &compound)){
-            command->name = push_string(arena, 4);
+            command->name = string_push(arena, 4);
             append_int_to_str(&command->name, j);
             terminate_with_null(&command->name);
             
-            String cmd = {0};
+            String cmd = {};
             if (config_compound_string_member(parsed, compound, "cmd", 0, &cmd)){
-                command->cmd = push_string_copy(arena, cmd);
+                command->cmd = string_push_copy(arena, cmd);
             }
             
-            String out = {0};
+            String out = {};
             if (config_compound_string_member(parsed, compound, "out", 1, &out)){
-                command->out = push_string_copy(arena, out);
+                command->out = string_push_copy(arena, out);
             }
             
             bool32 footer_panel = false;
@@ -284,7 +284,7 @@ parse_project__config_data__version_0(Partition *arena, String file_dir, Config 
             }
         }
         else{
-            command->name = push_string(arena, 4);
+            command->name = string_push(arena, 4);
             append_int_to_str(&command->name, j);
             terminate_with_null(&command->name);
         }
@@ -309,7 +309,7 @@ parse_project__extract_pattern_array(Partition *arena, Config *parsed,
         for (Config_Get_Result_Node *node = list.first;
              node != 0;
              node = node->next, i += 1){
-            String str = push_string_copy(arena, node->result.string);
+            String str = string_push_copy(arena, node->result.string);
             get_absolutes(str, &array_out->patterns[i].absolutes, false, false);
         }
     }
@@ -337,16 +337,16 @@ parse_project__config_data__version_1(Partition *arena, String root_dir, Config 
     // Set new project directory
     {
         int32_t cap = root_dir.size + 1;
-        project->dir = push_string(arena, cap);
+        project->dir = string_push(arena, cap);
         copy(&project->dir, root_dir);
         terminate_with_null(&project->dir);
     }
     
     // project_name
     {
-        String str = {0};
+        String str = {};
         if (config_string_var(parsed, "project_name", 0, &str)){
-            project->name = push_string_copy(arena, str);
+            project->name = string_push_copy(arena, str);
         }
         else{
             project->name = make_lit_string("");
@@ -378,7 +378,7 @@ parse_project__config_data__version_1(Partition *arena, String root_dir, Config 
                 
                 Config_Compound *paths = 0;
                 if (config_compound_compound_member(parsed, paths_option, "paths", 0, &paths)){
-                    String str = {0};
+                    String str = {};
                     if (config_compound_string_member(parsed, paths_option, "os", 1, &str)){
                         Project_OS_Match_Level r = parse_project__version_1__os_match(str, make_lit_string(PlatformName));
                         if (r == ProjectOSMatchLevel_ActiveMatch){
@@ -411,9 +411,9 @@ parse_project__config_data__version_1(Partition *arena, String root_dir, Config 
                     dst->recursive = true;
                     dst->relative = true;
                     
-                    String str = {0};
+                    String str = {};
                     if (config_compound_string_member(parsed, src, "path", 0, &str)){
-                        dst->path = push_string_copy(arena, str);
+                        dst->path = string_push_copy(arena, str);
                     }
                     
                     config_compound_bool_member(parsed, src, "recursive", 1, &dst->recursive);
@@ -442,12 +442,12 @@ parse_project__config_data__version_1(Partition *arena, String root_dir, Config 
                 
                 bool32 can_emit_command = true;
                 
-                String name = {0};
-                Config_Get_Result cmd_result = {0};
+                String name = {};
+                Config_Get_Result cmd_result = {};
                 Config_Compound *cmd_set = 0;
                 char *cmd_pos = 0;
-                String cmd_str = {0};
-                String out = {0};
+                String cmd_str = {};
+                String out = {};
                 bool32 footer_panel = false;
                 bool32 save_dirty_files = true;
                 bool32 cursor_at_end = false;
@@ -481,9 +481,9 @@ parse_project__config_data__version_1(Partition *arena, String root_dir, Config 
                     }
                     Config_Compound *cmd_option = result.get.compound;
                     
-                    String cmd = {0};
+                    String cmd = {};
                     if (config_compound_string_member(parsed, cmd_option, "cmd", 0, &cmd)){
-                        String str = {0};
+                        String str = {};
                         if (config_compound_string_member(parsed, cmd_option, "os", 1, &str)){
                             Project_OS_Match_Level r = parse_project__version_1__os_match(str, make_lit_string(PlatformName));
                             if (r == ProjectOSMatchLevel_ActiveMatch){
@@ -513,9 +513,9 @@ parse_project__config_data__version_1(Partition *arena, String root_dir, Config 
                 config_compound_bool_member(parsed, src, "cursor_at_end", 5,
                                             &cursor_at_end);
                 
-                dst->name = push_string_copy(arena, name);
-                dst->cmd = push_string_copy(arena, cmd_str);
-                dst->out = push_string_copy(arena, out);
+                dst->name = string_push_copy(arena, name);
+                dst->cmd = string_push_copy(arena, cmd_str);
+                dst->out = string_push_copy(arena, out);
                 dst->footer_panel = footer_panel;
                 dst->save_dirty_files = save_dirty_files;
                 dst->cursor_at_end = cursor_at_end;
@@ -528,7 +528,7 @@ parse_project__config_data__version_1(Partition *arena, String root_dir, Config 
     // fkey_command
     {
         for (int32_t i = 1; i <= 16; ++i){
-            String name = {0};
+            String name = {};
             int32_t index = -1;
             if (config_string_var(parsed, "fkey_command", i, &name)){
                 int32_t count = project->command_array.count;
@@ -575,7 +575,7 @@ parse_project__config_data(Partition *arena, String file_dir, Config *parsed){
 
 static Project_Parse_Result
 parse_project__data(Partition *arena, String file_name, String data, String file_dir){
-    Project_Parse_Result result = {0};
+    Project_Parse_Result result = {};
     Cpp_Token_Array array = text_data_to_token_array(arena, data);
     if (array.tokens != 0){
         result.parsed = text_data_and_token_array_to_parse_data(arena, file_name, data, array);
@@ -588,10 +588,10 @@ parse_project__data(Partition *arena, String file_name, String data, String file
 
 static Project_Parse_Result
 parse_project__nearest_file(Application_Links *app, Partition *arena){
-    Project_Parse_Result result = {0};
+    Project_Parse_Result result = {};
     
     Temp_Memory restore_point = begin_temp_memory(arena);
-    String project_path = {0};
+    String project_path = {};
     int32_t size = 32 << 10;
     char *space = push_array(arena, char, size);
     if (space != 0){
@@ -652,7 +652,7 @@ project_deep_copy__pattern_array(Partition *arena, Project_File_Pattern_Array *s
         int32_t abs_count = src->absolutes.count;
         dst->absolutes.count = abs_count;
         for (int32_t j = 0; j < abs_count; ++j){
-            dst->absolutes.a[j] = push_string_copy(arena, src->absolutes.a[j]);
+            dst->absolutes.a[j] = string_push_copy(arena, src->absolutes.a[j]);
             if (dst->absolutes.a[j].str == 0){
                 return(false);
             }
@@ -664,14 +664,14 @@ project_deep_copy__pattern_array(Partition *arena, Project_File_Pattern_Array *s
 
 static Project
 project_deep_copy__inner(Partition *arena, Project *project){
-    Project result = {0};
+    Project result = {};
     
-    result.dir = push_string_copy(arena, project->dir);
+    result.dir = string_push_copy(arena, project->dir);
     if (result.dir.str == 0){
         return(result);
     }
     
-    result.name = push_string_copy(arena, project->name);
+    result.name = string_push_copy(arena, project->name);
     if (result.name.str == 0){
         return(result);
     }
@@ -694,7 +694,7 @@ project_deep_copy__inner(Partition *arena, Project *project){
         Project_File_Load_Path *dst = result.load_path_array.paths;
         Project_File_Load_Path *src = project->load_path_array.paths;
         for (int32_t i = 0; i < path_count; ++i, ++dst, ++src){
-            dst->path = push_string_copy(arena, src->path);
+            dst->path = string_push_copy(arena, src->path);
             if (dst->path.str == 0){
                 return(result);
             }
@@ -716,19 +716,19 @@ project_deep_copy__inner(Partition *arena, Project *project){
         for (int32_t i = 0; i < command_count; ++i, ++dst, ++src){
             memset(dst, 0, sizeof(*dst));
             if (src->name.str != 0){
-                dst->name = push_string_copy(arena, src->name);
+                dst->name = string_push_copy(arena, src->name);
                 if (dst->name.str == 0){
                     return(result);
                 }
             }
             if (src->cmd.str != 0){
-                dst->cmd = push_string_copy(arena, src->cmd);
+                dst->cmd = string_push_copy(arena, src->cmd);
                 if (dst->cmd.str == 0){
                     return(result);
                 }
             }
             if (src->out.str != 0){
-                dst->out = push_string_copy(arena, src->out);
+                dst->out = string_push_copy(arena, src->out);
                 if (dst->out.str == 0){
                     return(result);
                 }
@@ -922,7 +922,7 @@ set_current_project(Application_Links *app, Partition *scratch, Project *project
         }
         else{
             Temp_Memory temp2 = begin_temp_memory(scratch);
-            String space = push_string(scratch, partition_remaining(scratch));
+            String space = string_push(scratch, partition_remaining(scratch));
             
             {
                 config_feedback_string(&space, "'root_directory'", project->dir);
@@ -971,9 +971,9 @@ exec_project_command(Application_Links *app, Project_Command *command){
             save_all_dirty_buffers(app);
         }
         
-        View_Summary view = {0};
+        View_Summary view = {};
         View_Summary *view_ptr = 0;
-        Buffer_Identifier buffer_id = {0};
+        Buffer_Identifier buffer_id = {};
         uint32_t flags = CLI_OverlapWithConflict;
         if (cursor_at_end){
             flags |= CLI_CursorAtEnd;
@@ -1012,6 +1012,18 @@ exec_project_command(Application_Links *app, Project_Command *command){
 }
 
 static void
+exec_project_command_by_index(Application_Links *app, int32_t command_index){
+    if (!current_project.loaded){
+        return;
+    }
+    if (command_index < 0 || command_index >= current_project.command_array.count){
+        return;
+    }
+    Project_Command *command = &current_project.command_array.commands[command_index];
+    exec_project_command(app, command);
+}
+
+static void
 exec_project_fkey_command(Application_Links *app, int32_t fkey_index){
     if (!current_project.loaded){
         return;
@@ -1020,8 +1032,8 @@ exec_project_fkey_command(Application_Links *app, int32_t fkey_index){
     if (command_index < 0 || command_index >= current_project.command_array.count){
         return;
     }
-    Project_Command *fkey = &current_project.command_array.commands[command_index];
-    exec_project_command(app, fkey);
+    Project_Command *command = &current_project.command_array.commands[command_index];
+    exec_project_command(app, command);
 }
 
 static void
@@ -1079,24 +1091,22 @@ CUSTOM_COMMAND_SIG(project_fkey_command)
 CUSTOM_DOC("Run an 'fkey command' configured in a project.4coder file.  Determines the index of the 'fkey command' by which function key or numeric key was pressed to trigger the command.")
 {
     User_Input input = get_command_input(app);
-    if (input.type == UserInputKey){
-        bool32 got_ind = false;
-        int32_t ind = 0;
-        if (input.key.keycode >= key_f1 && input.key.keycode <= key_f16){
-            ind = (input.key.keycode - key_f1);
-            got_ind = true;
-        }
-        else if (input.key.character_no_caps_lock >= '1' && input.key.character_no_caps_lock >= '9'){
-            ind = (input.key.character_no_caps_lock - '1');
-            got_ind = true;
-        }
-        else if (input.key.character_no_caps_lock == '0'){
-            ind = 9;
-            got_ind = true;
-        }
-        if (got_ind){
-            exec_project_fkey_command(app, ind);
-        }
+    bool32 got_ind = false;
+    int32_t ind = 0;
+    if (input.key.keycode >= key_f1 && input.key.keycode <= key_f16){
+        ind = (input.key.keycode - key_f1);
+        got_ind = true;
+    }
+    else if (input.key.character_no_caps_lock >= '1' && input.key.character_no_caps_lock >= '9'){
+        ind = (input.key.character_no_caps_lock - '1');
+        got_ind = true;
+    }
+    else if (input.key.character_no_caps_lock == '0'){
+        ind = 9;
+        got_ind = true;
+    }
+    if (got_ind){
+        exec_project_fkey_command(app, ind);
     }
 }
 
@@ -1113,7 +1123,7 @@ CUSTOM_DOC("Changes 4coder's hot directory to the root directory of the currentl
 
 static Project_Setup_Status
 project_is_setup(Application_Links *app, Partition *scratch, String script_path, String script_file){
-    Project_Setup_Status result = {0};
+    Project_Setup_Status result = {};
     
     Temp_Memory temp = begin_temp_memory(scratch);
     
@@ -1152,12 +1162,12 @@ project_key_strings_query_user(Application_Links *app,
                                char *code_file_space, int32_t code_file_cap,
                                char *output_dir_space, int32_t output_dir_cap,
                                char *binary_file_space, int32_t binary_file_cap){
-    Project_Key_Strings keys = {0};
+    Project_Key_Strings keys = {};
     
-    Query_Bar script_file_bar = {0};
-    Query_Bar code_file_bar = {0};
-    Query_Bar output_dir_bar = {0};
-    Query_Bar binary_file_bar = {0};
+    Query_Bar script_file_bar = {};
+    Query_Bar code_file_bar = {};
+    Query_Bar output_dir_bar = {};
+    Query_Bar binary_file_bar = {};
     
     if (get_script_file){
         script_file_bar.prompt = make_lit_string("Script Name: ");
@@ -1208,9 +1218,9 @@ project_generate_bat_script(Partition *scratch, String opts, String compiler,
     
     Temp_Memory temp = begin_temp_memory(scratch);
     
-    String cf = push_string_copy(scratch, code_file);
-    String od = push_string_copy(scratch, output_dir);
-    String bf = push_string_copy(scratch, binary_file);
+    String cf = string_push_copy(scratch, code_file);
+    String od = string_push_copy(scratch, output_dir);
+    String bf = string_push_copy(scratch, binary_file);
     
     replace_char(&cf, '/', '\\');
     replace_char(&od, '/', '\\');
@@ -1339,8 +1349,8 @@ project_generate_project_4coder_file(Partition *scratch,
     String od = output_dir;
     String bf = binary_file;
     
-    String od_win = push_string(scratch, od.size*2);
-    String bf_win = push_string(scratch, bf.size*2);
+    String od_win = string_push(scratch, od.size*2);
+    String bf_win = string_push(scratch, bf.size*2);
     
     append(&od_win, od);
     append(&bf_win, bf);
@@ -1422,7 +1432,7 @@ project_setup_scripts__generic(Application_Links *app, Partition *scratch,
     String script_path = get_hot_directory(app, scratch);
     
     bool32 needs_to_do_work = false;
-    Project_Setup_Status status = {0};
+    Project_Setup_Status status = {};
     if (do_project_file){
         status = project_is_setup(app, scratch, script_path, make_lit_string("build"));
         needs_to_do_work =
@@ -1541,6 +1551,43 @@ CUSTOM_COMMAND_SIG(setup_build_bat_and_sh)
 CUSTOM_DOC("Queries the user for several configuration options and initializes a new build batch script.")
 {
     project_setup_scripts__generic(app, &global_part, false, true, true);
+}
+
+///////////////////////////////
+
+static void
+activate_project_command(Application_Links *app, Partition *scratch, Heap *heap,
+                         View_Summary *view, Lister_State *state,
+                         String text_field, void *user_data, bool32 activated_by_mouse){
+    int32_t command_index = (int32_t)PtrAsInt(user_data);
+    exec_project_command_by_index(app, command_index);
+    lister_default(app, scratch, heap, view, state, ListerActivation_Finished);
+}
+
+CUSTOM_COMMAND_SIG(project_command_lister)
+CUSTOM_DOC("Open a lister of all commands in the currently loaded project.")
+{
+    if (!current_project.loaded){
+        return;
+    }
+    
+    Partition *arena = &global_part;
+    
+    View_Summary view = get_active_view(app, AccessAll);
+    view_end_ui_mode(app, &view);
+    Temp_Memory temp = begin_temp_memory(arena);
+    int32_t option_count = current_project.command_array.count;
+    Lister_Option *options = push_array(arena, Lister_Option, option_count);
+    for (int32_t i = 0; i < current_project.command_array.count; i += 1){
+        options[i].string = string_push_copy(arena, current_project.command_array.commands[i].name);
+        options[i].status = string_push_copy(arena, current_project.command_array.commands[i].cmd);
+        options[i].user_data = IntAsPtr(i);
+    }
+    begin_integrated_lister__basic_list(app, "Command:", activate_project_command, 0, 0,
+                                        options, option_count,
+                                        0,
+                                        &view);
+    end_temp_memory(temp);
 }
 
 // BOTTOM
