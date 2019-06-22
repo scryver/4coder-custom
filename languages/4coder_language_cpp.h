@@ -63,7 +63,14 @@ init_language_cpp(Application_Links *app){
         PSAT("v2"     , CPP_TOKEN_KEY_TYPE),
         PSAT("v3"     , CPP_TOKEN_KEY_TYPE),
         PSAT("v4"     , CPP_TOKEN_KEY_TYPE),
-
+        PSAT("v2s"    , CPP_TOKEN_KEY_TYPE),
+        PSAT("v3s"    , CPP_TOKEN_KEY_TYPE),
+        PSAT("v4s"    , CPP_TOKEN_KEY_TYPE),
+        PSAT("v2u"    , CPP_TOKEN_KEY_TYPE),
+        PSAT("v3u"    , CPP_TOKEN_KEY_TYPE),
+        PSAT("v4u"    , CPP_TOKEN_KEY_TYPE),
+        PSAT("m4x4"   , CPP_TOKEN_KEY_TYPE),
+        
         PSAT("Buffer" , CPP_TOKEN_KEY_TYPE),
         PSAT("String" , CPP_TOKEN_KEY_TYPE),
         

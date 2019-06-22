@@ -1292,12 +1292,12 @@ project_generate_sh_script(Partition *scratch, String opts, String compiler,
             append(&new_comp, "++");
             compiler = new_comp;
         }
-        except = make_lit_string("-Wno-unused-function -Wno-writable-strings");
+        except = make_lit_string("-Wno-unused-function -Wno-writable-strings -Wno-gnu-zero-variadic-macro-arguments -Wno-gnu-anonymous-struct -Wno-nested-anon-types -Wno-missing-braces");
     }
     else
     {
         // NOTE(michiel): Assume this is a c file
-        except = make_lit_string("-Wno-unused-function");
+        except = make_lit_string("-Wno-unused-function -Wno-gnu-zero-variadic-macro-arguments -Wno-gnu-anonymous-struct -Wno-nested-anon-types -Wno-missing-braces");
     }
     
     int32_t space_cap = partition_remaining(scratch);
@@ -1323,6 +1323,8 @@ project_generate_sh_script(Partition *scratch, String opts, String compiler,
         fprintf(sh_script, "exceptions=\"%.*s\"\n\n", except.size, except.str);
         
         fprintf(sh_script, "mkdir -p \"$buildDir\"\n\n");
+        
+        fprintf(sh_script, "echo Building \"%.*s\"\n\n", binary_file.size, binary_file.str);
         
         fprintf(sh_script, "pushd \"$buildDir\" > /dev/null\n");
         fprintf(sh_script, "    %.*s $flags $exceptions \"$codeDir/%.*s\" -o %.*s\n",
