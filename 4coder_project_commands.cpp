@@ -1271,7 +1271,7 @@ project_generate_sh_script(Partition *scratch, String opts, String compiler,
     if (cf.str[cf.size - 1] == 'p')
     {
         // NOTE(michiel): Assume this is cpp so we append the c++11 thingies
-        String cppstd = make_lit_string(" -std=c++11");
+        String cppstd = make_lit_string(" -std=c++11 -fno-exceptions");
         int32_t cap = opts.size + cppstd.size;
         char *mem = push_array(scratch, char, cap);
         push_align(scratch, 8);
@@ -1298,6 +1298,20 @@ project_generate_sh_script(Partition *scratch, String opts, String compiler,
     {
         // NOTE(michiel): Assume this is a c file
         except = make_lit_string("-Wno-unused-function -Wno-gnu-zero-variadic-macro-arguments -Wno-gnu-anonymous-struct -Wno-nested-anon-types -Wno-missing-braces");
+    }
+    
+    {
+        String fastmath = make_lit_string(" -ffast-math -fno-math-errno");
+        int32_t cap = opts.size + fastmath.size;
+        char *mem = push_array(scratch, char, cap);
+        push_align(scratch, 8);
+        if (mem != 0)
+        {
+            String new_opts = make_string_cap(mem, 0, cap);
+            append(&new_opts, opts);
+            append(&new_opts, fastmath);
+            opts = new_opts;
+        }
     }
     
     int32_t space_cap = partition_remaining(scratch);
