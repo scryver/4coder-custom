@@ -44,6 +44,9 @@ init_language_cpp(Application_Links *app){
         PSAT("float"  , CPP_TOKEN_KEY_TYPE),
         PSAT("double" , CPP_TOKEN_KEY_TYPE),
         
+        PSAT("__m128" , CPP_TOKEN_KEY_TYPE),
+        PSAT("__m128i", CPP_TOKEN_KEY_TYPE),
+        
         PSAT("u8"     , CPP_TOKEN_KEY_TYPE),
         PSAT("u16"    , CPP_TOKEN_KEY_TYPE),
         PSAT("u32"    , CPP_TOKEN_KEY_TYPE),
@@ -70,6 +73,11 @@ init_language_cpp(Application_Links *app){
         PSAT("v3u"    , CPP_TOKEN_KEY_TYPE),
         PSAT("v4u"    , CPP_TOKEN_KEY_TYPE),
         PSAT("m4x4"   , CPP_TOKEN_KEY_TYPE),
+        PSAT("f32_4x" , CPP_TOKEN_KEY_TYPE),
+        PSAT("f64_2x" , CPP_TOKEN_KEY_TYPE),
+        PSAT("v2_4x"  , CPP_TOKEN_KEY_TYPE),
+        PSAT("v3_4x"  , CPP_TOKEN_KEY_TYPE),
+        PSAT("v4_4x"  , CPP_TOKEN_KEY_TYPE),
         
         PSAT("Buffer" , CPP_TOKEN_KEY_TYPE),
         PSAT("String" , CPP_TOKEN_KEY_TYPE),
